@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+
+        <title>Intro to Building Data Pipelines in Python with Luigi</title>
+
+        <meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+        <meta name="author" content="Adrian Cruz">
+
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+        <link rel="stylesheet" href="css/reveal.css">
+        <link rel="stylesheet" href="css/theme/black.css" id="theme">
+
+        <!-- Code syntax highlighting -->
+        <link rel="stylesheet" href="lib/css/zenburn.css">
+
+        <!-- Printing and PDF exports -->
+        <script>
+            var link = document.createElement( 'link' );
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+            document.getElementsByTagName( 'head' )[0].appendChild( link );
+        </script>
+
+        <!--[if lt IE 9]>
+        <script src="lib/js/html5shiv.js"></script>
+        <![endif]-->
+    </head>
+
+    <body>
+
+        <div class="reveal">
+
+            <!-- Any section element inside of this container is displayed as a slide -->
+            <div class="slides">
+                <section>
+                    <h1>Intro to Building Data Pipelines in Python with Luigi</h1>
+                </section>
+
+                <section>
+                    <section>
+                        <p><span class="fragment">
+                            <img src="images/hello_my_name_is_sticker.adrian.png" alt="Hello Adrian" style="border:0; background:none;">
+                        </span></p>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>Data Pipeline</h2>
+                        <img width="638" height="478" src="images/IMG_20150813_230049.jpg" alt="data pipeline image">
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>Luigi</h2>
+                        <p>
+                            <span class="fragment">
+                                <img width="300" height="500" src="images/8bit_luigi.png" alt="8-bit Luigi" style="border:0; background:none;">
+                            </span>
+                        </p>
+                        <p><span class="fragment current-visible">Okay, maybe not this Luigi.</span></p>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>But <em>this</em> Luigi</h2>
+                        <p><span class="fragment"><img src="images/luigi.png" style="border:0; background:none;"></span></p>
+                        <p><span class="fragment"><img width="300" height="100" src="images/spotify-logo.png" style="border:0; background:none;"></span></p>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>So, what is Luigi?</h2>
+                        <span class="fragment">
+                            <blockquote>"Luigi is a Python package that helps you build complex pipelines of batch jobs. It handles dependency resolution, workflow management, visualization, handling failures, command line integration, and much more."</blockquote>
+                            <p><a href="http://luigi.readthedocs.org/en/stable/">http://luigi.readthedocs.org/en/stable/</a></p>
+                            <p><a href="https://github.com/spotify/luigi/">https://github.com/spotify/luigi/</a></p>
+                        </span>
+                    </section>
+                </section>
+
+                <section>
+                    <section data-background="#000000">
+                        <h2>So, <em>why</em> use Luigi?</h2>
+                        <p><span class="fragment"><img src="images/star_wars-long_time_ago.jpg" style="border:0; background:none;"></span></p>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>Okay seriously, back to our pipeline</h2>
+                        <img width="638" height="478" src="images/IMG_20150814_005855.jpg" alt="data pipeline image">
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h3>fetch_logs.py</h3>
+                        <img src="images/load_logs.png" style="border:0; background:none;">
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h3>aggregate_logs.py</h3>
+                        <img src="images/aggregate_logs.png" style="border:0; background:none;">
+                        <p><span class="fragment current-visible">Example: frequency of URLs</span></p>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h3>load_data.py</h3>
+                        <img src="images/load_data_into_db.png" style="border:0; background:none;">
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>The cron guessing game</h2>
+                        <p><pre class="fragment">
+                            <code>0 11 * * * /home/user/bin/fetch_logs.py</code>
+                        </pre></p>
+                        <p><pre class="fragment">
+                            <code>0 12 * * * /home/user/bin/aggregate_logs.py</code>
+                        </pre></p>
+                        <p><pre class="fragment">
+                            <code>0 13 * * * /home/user/bin/load_data.py</code>
+                        </pre></p>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>But what happens when something fails?</h2>
+                        <img width="600" height="480" src="images/full_cron_workflow.png" style="border:0; background:none;">
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>Consider a download failure</h2>
+                        <img src="images/load_logs_fail.png" style="border:0; background:none;">
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>The process continues</h2>
+                        <p>
+                            <span class="fragment">
+                                aggregate logs...
+                            </span>
+                            <span class="fragment"><font color="red">fail</font></span>
+                        </p>
+                        <p>
+                            <span class="fragment">
+                                load data...
+                            </span>
+                            <span class="fragment"><font color="red">fail</font></span>
+                        </p>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>So how can we solve this?</h2>
+                        <p>
+                            <span class="fragment">Add more time between cron jobs.</span>
+                            <span class="fragment"><font color="yellow">Not really a solution...</font></span>
+                        </p>
+                        <p><span class="fragment">Write a wrapper around all jobs</span></p>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>generic_pipeline_wrapper.py</h2>
+                        <p><pre class="fragment">
+                            <code data-trim contenteditable>
+import os
+
+from fetch_logs import data_download
+from aggregate_logs import calculate_frequency
+from load_data import data_loader
+
+
+def main():
+    data_file = data_download()
+    if os.path.isfile(data_file):
+        frequency_file = calculate_frequency()
+        if os.path.isfile(frequency_file):
+            data_loader()
+                            </code>
+                        </pre></p>
+                        <p><span class="fragment">Please don't do this.</span></p>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>The cron guessing game revisited</h2>
+                        <p><pre class="fragment">
+                            <code>0 11 * * * /home/user/bin/generic_pipeline_wrapper.py</code>
+                        </pre></p>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>So, now the Luigi way </h2>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2><code>Fetch Logs Task</code></h2>
+                        <p><pre class="fragment">
+                            <code data-trim contenteditable>
+import luigi
+
+class FetchLogsTask(luigi.Task):
+    def output(self):
+
+
+    def run(self):
+
+                            </code>
+                        </pre></p>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>Our new aggregator task</h2>
+                        <p><pre class="fragment">
+                            <code data-trim contenteditable>
+class AggregatorTask(luigi.Task):
+    def output(self):
+
+
+    def run(self):
+
+
+    def requires(self):
+                            </code>
+                        </pre></p>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>Our new load data task...</h2>
+                        <p><span class="fragment">...will be defined in a bit. ^_^</span></p>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>Let's take a look at the Task methods first</h2>
+                        <p><pre class="fragment">
+                            <code data-trim contenteditable>
+def output(self):
+    return luigi.LocalTarget('my_output.tmp')
+                            </code>
+                        </pre></p>
+                        <p><span class="fragment">a task is considered complete by looking for <code>output()</code></span></p>
+                        <p><span class="fragment">tasks that do not have <code>output()</code>, can override <code>complete()</code></span></p>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>Targets</h2>
+                        <p><pre class="fragment">
+                            <code data-trim contenteditable>
+def output(self):
+    return luigi.LocalTarget('my_output.tmp')
+                            </code>
+                        </pre></p>
+                        <p><span class="fragment"><code>LocalTarget</code> is a local file</span></p>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>A Hive Target Example</h2>
+                        <p><pre class="fragment">
+                            <code data-trim contenteditable>
+def output(self):
+    # Luigi Hive code expects the partition 
+    # data to be in dictionary format
+    partition_dict = {"year": partition_year,
+                      "month": partition_month,
+                      "day": partition_day}
+
+    return luigi.hive.HivePartitionTarget(
+            your_table,
+            partition_dict,
+            database=your_database)
+                            </code>
+                        </pre></p>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>Requires</h2>
+                        <p><pre class="fragment">
+                            <code data-trim contenteditable>
+def requires(self):
+    return [DependantTask0(), DependantTask1()]
+                            </code>
+                        </pre></p>
+                        <p><span class="fragment">this is how we define our dependency chain</span></p>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>Run</h2>
+                        <p><pre class="fragment">
+                            <code data-trim contenteditable>
+def run(self):
+    with open('input.csv', 'r') as input:
+        cat_count = 0
+        for line in input.readlines():
+            animal, age, color = line.split(',')
+            if animal == 'cat':
+                cat_count += 1
+    with self.output().open('w') as out_file:
+        out_file.write(cat_count)
+                            </code>
+                        </pre></p>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>Run Luigi for HDFS</h2>
+                        <p><pre class="fragment">
+                            <code data-trim contenteditable>
+# Snakebite is lovely
+from luigi.hdfs import SnakebiteHdfsClient
+
+# Snippet from __init__
+    self.hdfs_client = SnakebiteHdfsClient()
+...
+def run(self):
+    # Copy all files in source directory to HDFS target
+    for f in self._files_in_dir(self.source_dir):
+        self.hdfs_client.put(f, self.hdfs_dir)
+
+    # We'll write some _dummy_ output to
+    # indicate the task has finished
+    with self.output().open('w') as outfile:
+        outfile.write("Finished: {}\n".format(time.time()))
+                            </code>
+                        </pre></p>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>Now, back to our original example</h2>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>Copy logs</h2>
+                        <p><pre class="fragment">
+                            <code data-trim contenteditable>
+class CopyFile(luigi.Task):
+    def output(self):
+        return luigi.LocalTarget('done_copy.log')
+
+    def run(self):
+        # Some sort of implementation to copy
+
+        with self.output().open('w') as output:
+            output.write("hello\tworld")
+                            </code>
+                        </pre></p>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>Aggregate logs</h2>
+                        <p><pre class="fragment">
+                            <code data-trim contenteditable>
+class AggregatorTask(luigi.Task):
+    def output(self):
+        return luigi.LocalTarget('aggregator.data')
+
+    def run(self):
+         with open('input.csv', 'r') as input:
+            cat_count = 0
+            for line in input.readlines():
+                animal, age, color = line.split(',')
+                if animal == 'cat':
+                    cat_count += 1
+
+        with self.output().open('w') as out_file:
+             out_file.write(cat_count)
+
+    def requires(self):
+        return [CopyFile()]
+                            </code>
+                        </pre></p>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>Load data example</h2>
+                        <p><pre class="fragment">
+                            <code data-trim contenteditable>
+class DbExampleTask(luigi.postgres.CopyToTable):
+    host = "localhost"
+    database = "animals"
+    user = "luigi"
+    password = "abc123"
+    table = "cat_counter"
+
+    columns = [("date_from", "DATE"),
+               ("date_to", "DATE"),
+               ("cat", "TEXT"),
+               ("cat_count", "INT")]
+
+    def requires(self):
+        return [AggregatorTask()]
+                            </code>
+                        </pre></p>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>Real-world application</h2>
+                        <img src="images/real_data_pipeline.png" alt="data pipeline image">
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <p>Luigi Docs<br />
+                        <a href="http://luigi.readthedocs.org/en/stable/index.html">
+                                http://luigi.readthedocs.org/en/stable/index.html
+                            </a>
+                        </p>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>Projects Similar to Luigi</h2>
+                        <p>Airflow<br />
+                            <a href="https://github.com/airbnb/airflow">
+                                https://github.com/airbnb/airflow
+                            </a>
+                            <a href="http://nerds.airbnb.com/airflow/">
+                                http://nerds.airbnb.com/airflow/
+                            </a>
+                        </p>
+                        <p>Pinball<br />
+                            <a href="https://github.com/pinterest/pinball">
+                                https://github.com/pinterest/pinball
+                            </a>
+                            <a href="https://engineering.pinterest.com/blog/pinball-building-workflow-management">
+                                https://engineering.pinterest.com/blog/pinball-building-workflow-management
+                            </a>
+                        </p>
+                    </section>
+                </section>
+
+                <section>
+                    <p><a href="http://drincruz.com">Adrian Cruz</a> / <a href="https://twitter.com/drincruz">@drincruz</a></p>
+                    <p>Engineer @ <a href="http://www.teacherspayteachers.com/Careers">TeachersPayTeachers</a></p>
+                    <p>
+                        <span class="fragment"><font color="orange">we're hiring!</font></span>
+                        <span class="fragment"><a href="http://www.teacherspayteachers.com/Careers">http://www.teacherspayteachers.com/Careers</a></span>
+                        <span class="fragment"><a href="http://www.teacherspayteachers.com/Careers">http://www.teacherspayteachers.com/Careers</a></span>
+                    </p>
+                    <p><span class="fragment">Thanks! Cheers!</span></p>
+                </section>
+
+            </div>
+
+        </div>
+
+        <script src="lib/js/head.min.js"></script>
+        <script src="js/reveal.js"></script>
+
+        <script>
+
+            // Full list of configuration options available at:
+            // https://github.com/hakimel/reveal.js#configuration
+            Reveal.initialize({
+                controls: true,
+                progress: true,
+                history: true,
+                center: true,
+
+                transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+                // Optional reveal.js plugins
+                dependencies: [
+                    { src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+                    { src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+                    { src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+                    { src: 'plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+                    { src: 'plugin/zoom-js/zoom.js', async: true },
+                    { src: 'plugin/notes/notes.js', async: true }
+                ]
+            });
+
+        </script>
+
+    </body>
+</html>
