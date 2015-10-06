@@ -113,11 +113,48 @@
 
                 <section>
                     <section>
+                        <h3>fetch_logs.py</h3>
+                        <p><pre>
+                            <code>
+    s3conn = boto.connect_s3()
+    bkt = s3conn.get_bucket('my_bucket')
+    for itm in bkt.list(prefix = date):
+        myfile = re.sub(date + '/', '', itm.name)
+        fh = open(mydir + myfile, 'w')
+        itm.get_file(fh)
+        fh.close
+                            </code>
+                        </pre></p>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
                         <h3>aggregate_logs.py</h3>
                         <img src="images/aggregate_logs.png" style="border:0; background:none;">
                         <p><span class="fragment current-visible">Example: frequency of URLs</span></p>
                     </section>
                 </section>
+
+                <section>
+                    <section>
+                        <h3>aggregate_logs.py</h3>
+                        <p><pre>
+                            <code>
+from collections import Counter
+
+with open('/tmp/local_data.log', 'r') as input:
+    data = [line.strip() for line in input.readlines()]
+    
+counter_data = Counter(data)
+for uri, count in counter_data.items():
+    with open('/tmp/tmp.output.tsv', 'a') as output:
+        output.write('{}\t{}\n'.format(uri, count))
+                            </code>
+                        </pre></p>
+                    </section>
+                </section>
+
 
                 <section>
                     <section>
@@ -332,15 +369,16 @@ def requires(self):
                         <h2>Run</h2>
                         <p><pre class="fragment">
                             <code data-trim contenteditable>
+from collections import Counter
+
 def run(self):
-    with open('input.csv', 'r') as input:
-        cat_count = 0
-        for line in input.readlines():
-            animal, age, color = line.split(',')
-            if animal == 'cat':
-                cat_count += 1
-    with self.output().open('w') as out_file:
-        out_file.write(cat_count)
+    with open('/tmp/local_data.log', 'r') as input:
+        data = [line.strip() for line in input.readlines()]
+        
+    counter_data = Counter(data)
+    for uri, count in counter_data.items():
+        with self.output().open('w') as output:
+            output.write('{}\t{}\n'.format(uri, count))
                             </code>
                         </pre></p>
                     </section>
@@ -348,7 +386,7 @@ def run(self):
 
                 <section>
                     <section>
-                        <h2>Run Luigi for HDFS</h2>
+                        <h2>Example of a Run method for HDFS</h2>
                         <p><pre class="fragment">
                             <code data-trim contenteditable>
 # Snakebite is lovely
@@ -387,10 +425,14 @@ class CopyFile(luigi.Task):
         return luigi.LocalTarget('done_copy.log')
 
     def run(self):
-        # Some sort of implementation to copy
+        for s3key in self._get_keys(self.s3_key_filter):
+           outfile = self.tmp_output(s3key.name)
+           with outfile.open('w') as outfh:
+               s3key.get_file(outfh)
 
-        with self.output().open('w') as output:
-            output.write("hello\tworld")
+       with self.output().open('w') as output:
+           output.write("{}\t{}".format(self.s3_bucket,
+                                        self.output_dir))
                             </code>
                         </pre></p>
                     </section>
@@ -406,15 +448,13 @@ class AggregatorTask(luigi.Task):
         return luigi.LocalTarget('aggregator.data')
 
     def run(self):
-         with open('input.csv', 'r') as input:
-            cat_count = 0
-            for line in input.readlines():
-                animal, age, color = line.split(',')
-                if animal == 'cat':
-                    cat_count += 1
-
-        with self.output().open('w') as out_file:
-             out_file.write(cat_count)
+        for infile in os.listdir('/input/dir'):
+            with open(infile, 'r') as input:
+                data = [x.strip() for x in input.readlines()]
+                counter_data = Counter(data)
+                for uri, count in counter_data.items():
+                    with self.output().open('a') as out:
+                         out.write('{}\t{}'.format(uri, count))
 
     def requires(self):
         return [CopyFile()]
@@ -430,10 +470,10 @@ class AggregatorTask(luigi.Task):
                             <code data-trim contenteditable>
 class DbExampleTask(luigi.postgres.CopyToTable):
     host = "localhost"
-    database = "animals"
+    database = "most_popular_links"
     user = "luigi"
     password = "abc123"
-    table = "cat_counter"
+    table = "uri_counter"
 
     columns = [("date_from", "DATE"),
                ("date_to", "DATE"),
