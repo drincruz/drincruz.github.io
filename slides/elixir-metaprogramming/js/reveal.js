@@ -221,9 +221,7 @@
 			display: 'block',
 
 			// Script dependencies to load
-			dependencies: [
-                { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
-            ]
+			dependencies: []
 
 		},
 
