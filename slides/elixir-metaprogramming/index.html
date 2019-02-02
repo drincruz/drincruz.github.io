@@ -280,7 +280,7 @@ iex(29)> quote do: unquote(one) + 2
           </div>
         </section>
         <section>
-          <p>back to [the important parts] <code>build_if</code></p>
+          <p>back to [the modified] <code>build_if</code></p>
           <pre><code data-trim data-noescape>
 defp build_if(condition, do: do_clause, else: else_clause) do
   quote do
@@ -293,10 +293,17 @@ end
           </code></pre>
         </section>
         <section>
-          <p>Quick summary of <code>if</code></p>
+          <h3>Quick summary of if</h3>
+          <p class="fragment"><code>if</code> is a macro</p>
           <p class="fragment"><code>if</code> is actually just a <code>case</code></p>
           <p class="fragment">We check if the condition is <code>nil, false</code></p>
           <p class="fragment">Otherwise, we'll execute the <code>do_clause</code></p>
+          <div class="fragment">
+            <pre><code data-trim data-noescape>
+iex(30)> Kernel.if(1 + 1 == 2, do: :this_is_true, else: :nope)
+:this_is_true
+            </code></pre>
+          </div>
         </section>
         <section>
           <h3>Let's build our own macro...</h3>
@@ -394,16 +401,22 @@ end
         </section>
         <section>
           <p>And now we've come full circle :)</p>
+          <p class="fragment">We learned about Elixir</p>
+          <p class="fragment">by making Elixir</p>
+          <p class="fragment">by extending Elixir</p>
+          <p class="fragment">...in Elixir</p>
         </section>
         <section>
-          <h3>Some caveats and lessons learned</h3>
+          <h3>Some caveats and learnings</h3>
           <p class="fragment"><em>They</em> say, Rule #1 for Macros is "Don't write macros"</p>
           <p class="fragment">Boiler plate helps, but ensure your engineers know when macros are being used.</p>
+          <p class="fragment">DSLs are helpful, but can be dangerous</p>
+          <p class="fragment">Read "Metaprogramming Elixir" by Chris McCord</p>
         </section>
         <section>
           <h3>Thank You Empex!</h3>
           <p class="fragment"><strong>twitter / github</strong>: drincruz</p>
-          <p class="fragment"><strong>slides</strong>: http://drincruz.github.io/slides/elixir-metaprogramming/index.html</p>
+          <p class="fragment"><strong>Teachers Pay Teachers</strong> is hiring: teacherspayteachers.com/Careers</p>
           <p class="fragment"><strong>slides bit.ly</strong>: http://bit.ly/2Rvikjf</p>
         </section>
 			</div>
