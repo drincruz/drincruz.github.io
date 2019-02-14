@@ -1,0 +1,496 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Getting Results: Finding What We Need with Elixir</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/white.css">
+		<link rel="stylesheet" href="css/custom.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/atelier-heath.light.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+    <script>
+      window.addEventListener("load", function() {
+       revealDiv = document.querySelector("body div.reveal")
+       footer = document.getElementById("adrian-footer");
+       revealDiv.appendChild(footer);
+     } );
+    </script>
+	</head>
+	<body>
+    <div id="adrian-footer" class="footer">
+      <span class="element">@drincruz</span>
+      <span class="element">#CodeBEAMSF</span>
+      <span class="element">
+				<img src="images/tpt-apple.svg" />
+      </span>
+    </div>
+    <div class="reveal">
+      <div class="slides">
+
+        <section><h1>Getting Results</h1>
+          <br><h3>Finding What We Need with Elixir</h3></br>
+          <p>CodeBEAM SF - February 28, 2019</p>
+        </section>
+        <section>
+          <h1>Hi, I'm Adrian</h1>
+          <p class="fragment">Engineer.</p>
+          <p class="fragment">Sometimes speaker.</p>
+          <p class="fragment">Elixir Programmer.</p>
+        </section>
+        <section>
+          <img src="images/tpt-logo.svg" />
+        </section>
+        <section>
+          <p>Teachers Pay Teachers (TPT) is a marketplace for educators</p>
+          <div class="fragment">
+            <img src="images/tpt-vday_search01.png" />
+          </div>
+        </section>
+        <section>
+          <h3>a typical flow for a user</h3>
+          <p class="fragment"><code>/</code></p>
+          <p class="fragment"><code>/Browse</code></p>
+          <p class="fragment"><code>/Product</code></p>
+          <p class="fragment"><code>/Checkout</code></p>
+        </section>
+        <section>
+          <h2>Search is one of our main user flows</h2>
+          <p class="fragment">it's also the one of the first parts we worked on in Elixir</p>
+        </section>
+        <section>
+          <h2>We use Elixir</h2>
+          <p class="fragment">But that wasn't the always the case.</p>
+        </section>
+        <section>
+          <p>We had a need to re-architect our API.</p>
+          <p class="fragment">that allowed us to explore other programming languages</p>
+        </section>
+        <section>
+          <p>Let's take a look at the old system (simplified)</p>
+          <div class="fragment">
+            <img src="images/tpt-php_stack.png" />
+          </div>
+        </section>
+        <section>
+          <p>we started breaking down the monolith</p>
+          <div class="fragment">
+            <img src="images/tpt-updated_stack.png" />
+          </div>
+        </section>
+
+				<section>
+            <h2>Elixir as per elixir-lang.org</h2>
+					<blockquote cite="https://elixir-lang.org">
+	          <p class="fragment">
+	           "Elixir is a dynamic, functional language designed for building scalable and maintainable applications."
+						</p>
+	          <p class="fragment">
+	            "Elixir leverages the <span class="fragment highlight-blue visible">Erlang VM</span>, known for running low-latency, distributed and fault-tolerant systems,
+	            while also being successfully used in web development and the embedded software domain."
+						</p>
+					</blockquote>
+				</section>
+				<section>
+          <h2>Metaprogramming</h2>
+					  <blockquote cite="https://en.wikipedia.org/wiki/Metaprogramming">
+	            <p class="fragment">
+	              "Metaprogramming is a programming technique in which computer programs have the ability to treat
+	              other programs as their data."
+						  </p>
+	            <p class="fragment">
+	              "In some cases, this allows programmers to minimize the number of lines of code to express a
+	              solution, in turn reducing development time."
+						  </p>
+					  </blockquote>
+				</section>
+				<section>
+					Elixir is mostly Elixir
+					<img src="images/elixir-lang.github.20190121.png">
+				</section>
+				<section>
+          <h3>How does that work?</h3>
+				</section>
+				<section>
+          <code>defmacro</code> and a simple bootstrapping process.
+				</section>
+				<section>
+          <h3>bootstrapping elixir</h3>
+          <p class="fragment">elixir_bootstrap.erl</p>
+          <p class="fragment">kernel.ex</p>
+				</section>
+        <section>
+          <h4><code>elixir_bootstrap</code></h4>
+					<pre><code data-trim data-noescape>
+%% An Erlang module that behaves like an Elixir module
+%% used for bootstrapping.
+-module(elixir_bootstrap).
+-export(['MACRO-def'/2, 'MACRO-def'/3, 'MACRO-defp'/3, 'MACRO-defmodule'/3,
+         'MACRO-defmacro'/2, 'MACRO-defmacro'/3, 'MACRO-defmacrop'/3,
+         'MACRO-@'/2, '__info__'/1]).
+-define(kernel, 'Elixir.Kernel').
+        </code></pre>
+        </section>
+        <section>
+          <p>think of <code>elixir_bootstrap</code> exactly as its name implies</p>
+          <p class="fragment">...a way to <em>bootstrap</em> <code>Elixir.Kernel</code></p>
+        </section>
+        <section>
+          <h4><code>Kernel</code></h4>
+					<pre><code data-trim data-noescape>
+# Use elixir_bootstrap module to be able to bootstrap Kernel.
+# The bootstrap module provides simpler implementations of the
+# functions removed, simple enough to bootstrap.
+import Kernel,
+  except: [@: 1, defmodule: 2, def: 1, def: 2, defp: 2, defmacro: 1, defmacro: 2, defmacrop: 2]
+
+import :elixir_bootstrap
+        </code></pre>
+        </section>
+        <section>
+          <p>so, <code>Kernel</code> is the beginning of Elixir</p>
+          <p class="fragment">being written in Elixir</p>
+        </section>
+        <section>
+          <h3>let's build elixir</h3>
+          <p class="fragment">
+            let's look at the Makefile <span class="fragment"><em>briefly</em></span>
+          </p>
+        </section>
+				<section>
+					<h3>simplified view on how to compile Elixir</h3>
+            <p class="fragment"><code>$ make erlang</code></p>
+            <p class="fragment"><code>$ make lib/elixir/ebin/elixir.app</code></p>
+            <p class="fragment"><code>$ make stdlib</code></p>
+					</code></pre>
+				</section>
+        <section>
+          <h4><code>make erlang lib/elixir/ebin/elixir.app</code></h4>
+          <pre><code data-trim data-noescape>
+            $ make erlang lib/elixir/ebin/elixir.app
+            <span class="fragment highlight-green visible">Recompile: src/elixir_bootstrap</span>
+            # ... and all of the other .erl files in lib/elixir/src/
+            Generated elixir.app
+            </code></pre>
+        </section>
+        <section>
+          <p>We're compiling the underlying Erlang code first.</p>
+        </section>
+        <section>
+          <h4><code>make stdlib</code></h4>
+          <pre><code data-trim data-noescape>
+$ make stdlib
+<span class="fragment highlight-green visible">==> bootstrap (compile)</span>
+<span class="fragment highlight-green visible">Compiled lib/elixir/lib/kernel.ex</span>
+# ... the rest of elixir/lib/*
+==> elixir (compile)
+==> unicode (compile)
+Generated elixir.app
+          </code></pre>
+        </section>
+        <section>
+          Let's look into <code>make stdlib</code> closer.
+        </section>
+        <section>
+          <p>One of the Erlang modules we compiled is <code>elixir_compiler</code></p>
+          <pre><code data-trim data-noescape>
+stdlib: $(KERNEL) VERSION
+$(KERNEL): lib/elixir/lib/*.ex lib/elixir/lib/*/*.ex lib/elixir/lib/*/*/*.ex
+  $(Q) if [ ! -f $(KERNEL) ]; then \
+    echo "==> bootstrap (compile)"; \
+<span class="fragment highlight-green visible">    $(ERL) -s elixir_compiler bootstrap -s erlang halt; \ </span>
+  fi
+            </code></pre>
+        </section>
+        <section>
+          <p><code>elixir_compiler</code> is an Erlang module that compiles the Elixir code.</p>
+        </section>
+        <section>
+          <h3>Recap on things so far</h3>
+          <p class="fragment">Compile Erlang modules, get a minimal Kernel.</p>
+          <p class="fragment">Compile Elixir modules, get the Kernel written in Elixir.</p>
+        </section>
+        <section>
+          <p>Let's take a look at some of the <code>Kernel</code> code</p>
+        </section>
+        <section>
+          <h3>We have convenience wrappers for some of the commonly used Erlang code</h3>
+          <pre><code data-trim data-noescape>
+@spec div(integer, neg_integer | pos_integer) :: integer
+def div(dividend, divisor) do
+  :erlang.div(dividend, divisor)
+end
+
+@spec is_binary(term) :: boolean
+def is_binary(term) do
+  :erlang.is_binary(term)
+end
+          </code></pre>
+        </section>
+        <section>
+          But now let's take a look at the fun things defined in <code>Kernel</code>
+        </section>
+        <section>
+          <h4><code>if</code></h4>
+          <pre><code data-trim data-noescape>
+defmacro if(condition, clauses) do
+  build_if(condition, clauses)
+end
+          </code></pre>
+        </section>
+        <section>
+          <p>Yes, <code>if</code> is actually just a macro!</p>
+        </section>
+        <section>
+          <p>You wanna see what else is a macro?</p>
+          <div class="fragment">
+            <pre><code data-trim data-noescape>
+defmacro defmacro(call, expr \\ nil) do
+  define(:defmacro, call, expr, __CALLER__)
+end
+            </code></pre>
+          </div>
+          <p class="fragment">yeah...that's for another time.</p>
+        </section>
+        <section>
+          <p>Let's get back to <code>if</code> and look at its implementation.</p>
+          <div class="fragment">
+            <pre><code data-trim data-noescape>
+defmacro if(condition, clauses) do
+  build_if(condition, clauses)
+end
+            </code></pre>
+          </div>
+          <div class="fragment">
+            <pre><code data-trim data-noescape>
+defp build_if(condition, do: do_clause) do
+  build_if(condition, do: do_clause, else: nil)
+end
+
+defp build_if(condition, do: do_clause, else: else_clause) do
+  optimize_boolean(
+    quote do
+      case unquote(condition) do
+        x when :"Elixir.Kernel".in(x, [false, nil]) -> unquote(else_clause)
+        _ -> unquote(do_clause)
+      end
+    end
+  )
+end
+            </code></pre>
+          </div>
+        </section>
+        <section>
+          <h4><code>build_if</code></h4>
+          <pre><code data-trim data-noescape>
+defp build_if(condition, do: do_clause, else: else_clause) do
+  optimize_boolean(
+    <span class="fragment highlight-green visible">quote do</span>
+      <span class="fragment highlight-green visible">case unquote(condition) do</span>
+        x when :"Elixir.Kernel".in(x, [false, nil]) -> unquote(else_clause)
+        _ -> unquote(do_clause)
+      end
+    end
+  )
+end
+          </code></pre>
+        </section>
+        <section>
+          <p>let's look at what <code>quote</code> does</p>
+          <div class="fragment">
+            <pre><code data-trim data-noescape>
+iex(16)> quote do: 1 + 2
+{:+, [context: Elixir, import: Kernel], [1, 2]}
+            </code></pre>
+          </div>
+        </section>
+        <section>
+          <p>and what about <code>unquote</code> ?</p>
+          <div class="fragment">
+            <pre><code data-trim data-noescape>
+iex(27)> one = 1
+1
+iex(28)> quote do: one + 2
+{:+, [context: Elixir, import: Kernel], [{:one, [], Elixir}, 2]}
+            </code></pre>
+          </div>
+          <div class="fragment">
+            <pre><code data-trim data-noescape>
+iex(29)> quote do: unquote(one) + 2
+{:+, [context: Elixir, import: Kernel], [1, 2]}
+            </code></pre>
+          </div>
+        </section>
+        <section>
+          <p>back to [the modified] <code>build_if</code></p>
+          <pre><code data-trim data-noescape>
+defp build_if(condition, do: do_clause, else: else_clause) do
+  quote do
+    case unquote(condition) do
+      x when in [false, nil] -> unquote(else_clause)
+      _ -> unquote(do_clause)
+    end
+  end
+end
+          </code></pre>
+        </section>
+        <section>
+          <h3>Quick summary of if</h3>
+          <p class="fragment"><code>if</code> is a macro</p>
+          <p class="fragment"><code>if</code> is actually just a <code>case</code></p>
+          <p class="fragment">We check if the condition is <code>nil, false</code></p>
+          <p class="fragment">Otherwise, we'll execute the <code>do_clause</code></p>
+          <div class="fragment">
+            <pre><code data-trim data-noescape>
+iex(30)> Kernel.if(1 + 1 == 2, do: :this_is_true, else: :nope)
+:this_is_true
+            </code></pre>
+          </div>
+        </section>
+        <section>
+          <h3>Let's build our own macro...</h3>
+        </section>
+        <section>
+          <p>As a simple case, let's say we do a lot of dividing.</p>
+          <p class="fragment">But, we also need the remainder.</p>
+          <p class="fragment">That looks like this:</p>
+          <div class="fragment">
+            <pre><code data-trim data-noescape>
+iex(30)> div(5, 3)
+1
+            </code></pre>
+          </div>
+          <div class="fragment">
+            <pre><code data-trim data-noescape>
+iex(30)> rem(5, 3)
+2
+            </code></pre>
+          </div>
+        </section>
+        <section>
+          <p>Let's build this!</p>
+          <div class="fragment">
+            <pre><code data-trim data-noescape>
+defmacro divrem(dividend, divisor) do
+            </code></pre>
+          </div>
+          <div class="fragment">
+            <pre><code data-trim data-noescape>
+    quote do
+      dividend = unquote(dividend)
+      divisor = unquote(divisor)
+            </code></pre>
+          </div>
+          <div class="fragment">
+            <pre><code data-trim data-noescape>
+      {
+        :erlang.div(dividend, divisor),
+        :erlang.rem(dividend, divisor)
+      }
+    end
+            </code></pre>
+          </div>
+          <div class="fragment">
+            <pre><code data-trim data-noescape>
+end
+            </code></pre>
+          </div>
+        </section>
+        <section>
+          <h3>All together now</h3>
+          <div>
+            <pre><code data-trim data-noescape>
+defmacro divrem(dividend, divisor) do
+  quote do
+    dividend = unquote(dividend)
+    divisor = unquote(divisor)
+    {
+      :erlang.div(dividend, divisor),
+      :erlang.rem(dividend, divisor)
+    }
+  end
+end
+            </code></pre>
+          </div>
+        </section>
+        <section>
+          <h3>Now, if we added that to kernel.ex, we can build our new Elixir</h3>
+            <p class="fragment"><code>$ make erlang</code></p>
+            <p class="fragment"><code>$ make lib/elixir/ebin/elixir.app</code></p>
+            <p class="fragment"><code>$ make stdlib</code></p>
+          </code></pre>
+        </section>
+        <section>
+          <p>Now we can get a tuple with a <code>div</code> and <code>rem</code></p>
+          <div class="fragment">
+            <pre><code data-trim data-noescape>
+              $ bin/elixir -e 'IO.puts(inspect(divrem(5, 3)))'
+              {1, 2}
+            </code></pre>
+          </div>
+          <div class="fragment">
+            <pre><code data-trim data-noescape>
+              $ bin/elixir -e 'IO.puts(inspect(divrem(2, 1)))'
+              {2, 0}
+            </code></pre>
+          </div>
+          <div class="fragment">
+            <pre><code data-trim data-noescape>
+              $ bin/elixir -e 'IO.puts(inspect(divrem(1, 3)))'
+              {0, 1}
+            </code></pre>
+          </div>
+        </section>
+        <section>
+          <p>And now we've come full circle :)</p>
+          <p class="fragment">We learned about Elixir</p>
+          <p class="fragment">by making Elixir</p>
+          <p class="fragment">by extending Elixir</p>
+          <p class="fragment">...in Elixir</p>
+        </section>
+        <section>
+          <h3>Some caveats and learnings</h3>
+          <p class="fragment"><em>They</em> say, Rule #1 for Macros is "Don't write macros"</p>
+          <p class="fragment">Boiler plate helps, but ensure your engineers know when macros are being used.</p>
+          <p class="fragment">DSLs are helpful, but can be dangerous</p>
+          <p class="fragment">Read "Metaprogramming Elixir" by Chris McCord</p>
+        </section>
+        <section>
+          <h3>Thank You Empex!</h3>
+          <p class="fragment"><strong>twitter / github</strong>: drincruz</p>
+          <p class="fragment"><strong>Teachers Pay Teachers</strong> is hiring: teacherspayteachers.com/Careers</p>
+          <p class="fragment"><strong>slides bit.ly</strong>: http://bit.ly/2Rvikjf</p>
+        </section>
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
