@@ -54,9 +54,16 @@
           <img src="images/tpt-logo.svg" />
         </section>
         <section>
-          <p>Teachers Pay Teachers (TPT) is a marketplace for educators</p>
+          <h3>Teachers Pay Teachers (TPT)</h3>
+          <p>is a marketplace for educators</p>
           <div class="fragment">
-            <img src="images/tpt-vday_search01.png" />
+            <img src="images/tpt-fractions_search-01.png" />
+          </div>
+        </section>
+        <section>
+          <p>Fraction Printables</p>
+          <div class="fragment">
+            <img src="images/tpt-fractions_product-01.png" />
           </div>
         </section>
         <section>
@@ -75,7 +82,7 @@
           <p class="fragment">But that wasn't the always the case.</p>
         </section>
         <section>
-          <p>We had a need to re-architect our API.</p>
+          <h4>We had a need to re-architect our API</h4>
           <p class="fragment">that allowed us to explore other programming languages</p>
         </section>
         <section>
@@ -85,9 +92,203 @@
           </div>
         </section>
         <section>
-          <p>we started breaking down the monolith</p>
+          <h3>But how do we re-architect our API without affecting our existing flows?</h3>
+          <p><span class="fragment">a complete re-write?</span>&nbsp;<span class="fragment">no</span></p>
+          <p><span class="fragment">what if we can break down the flows?</span>&nbsp;<span class="fragment">ok</span></p>
+        </section>
+        <section>
+          <h3>So, Elixir, neat. But what if we don't like it?</h3>
+          <p><span class="fragment">what about an isolated test?</span></p>
+        </section>
+        <section>
+          <h3>Brilliant, we are going to de-couple anyway</h3>
+          <p><span class="fragment">Now, what is a good test?</span></p>
+          <p><span class="fragment">Minimal risk?</span></p>
+          <p><span class="fragment">Yet, an effective proof-of-concept?</span></p>
+        </section>
+        <section>
+          <h3>autosuggest</h3>
           <div class="fragment">
-            <img src="images/tpt-updated_stack.png" />
+            <img src="images/tpt-autosuggest-01.png" />
+          </div>
+        </section>
+        <section>
+          <h3>autosuggest ...</h3>
+          <p><span class="fragment">... is a REST API</span></p>
+          <p><span class="fragment">... returns related terms</span></p>
+          <p><span class="fragment">... built in PHP</span></p>
+        </section>
+        <section>
+          <h3>and the updated autosuggest is ...</h3>
+          <p>
+            <span class="fragment">
+              built on top of Phoenix
+              <img src="images/phoenix.png" />
+            </span>
+          </p>
+          <p><span class="fragment">a REST API</span></p>
+          <p><span class="fragment">uses <code>Agent</code> to keep state</span></p>
+          <p><span class="fragment">uses Erlang Term Storage (ETS) as a caching layer</span></p>
+        </section>
+        <section>
+            <section>
+              <h4>here's a simplified version of what we did</h4>
+              <p><span class="fragment">we create a trie utilizing a library, <code>Retrieval</code></span></p>
+              <pre class="fragment"><code data-trim data-noescape>
+                iex(1)> words = ["aa", "ab", "ac", "bb", "bc", "cc"]
+                ["aa", "ab", "ac", "bb", "bc", "cc"]
+              </code></pre>
+              <pre class="fragment"><code data-trim data-noescape>
+                iex(2)> trie = words |> Retrieval.new()
+                %Retrieval.Trie{
+                  trie: %{
+                    97 => %{97 => %{mark: :mark}, 98 => %{mark: :mark}, 99 => %{mark: :mark}},
+                    98 => %{98 => %{mark: :mark}, 99 => %{mark: :mark}},
+                    99 => %{99 => %{mark: :mark}}
+                  }
+                }
+              </code></pre>
+          </section>
+          <section>
+              <h5>quick trie data structure refresher</h5>
+              <img src="images/trie_example.wikipedia.png" />
+          </section>
+        </section>
+        <section>
+          <h4>suggesting some terms</h4>
+          <pre><code data-trim data-noescape>
+            iex(3)> Retrieval.prefix(trie, "a")
+            ["aa", "ab", "ac"]
+            iex(4)> Retrieval.prefix(trie, "b")
+            ["bb", "bc"]
+          </code></pre>
+          <p><span class="fragment">We can now walk the trie to find related terms.</p>
+        </section>
+        <section>
+          <h4>ETS as cache</h4>
+          <pre class="fragment"><code data-trim data-noescape>
+            iex(5)> :ets.new(:trie_cache, [:set, :named_table])
+            :trie_cache
+          </code></pre>
+          <pre class="fragment"><code data-trim data-noescape>
+            iex(6)> Retrieval.prefix(trie, "b")
+            ["bb", "bc"]
+          </code></pre>
+          <pre class="fragment"><code data-trim data-noescape>
+            iex(7)> :ets.insert(:trie_cache, {"b", v}) # v retrieves last value
+            true
+          </code></pre>
+        </section>
+        <section>
+          <h4>get or insert terms from ETS</h4>
+          <pre class="fragment"><code data-trim data-noescape>
+            iex(8)> lookup = fn(term) ->
+            ...(8)>   case :ets.lookup(:trie_cache, term) do
+            ...(8)>     [] ->
+            ...(8)>       IO.puts("Not in ETS")
+            ...(8)>       results = Retrieval.prefix(trie, term)
+            ...(8)>       :ets.insert(:trie_cache, {term, results})
+            ...(8)>       results
+            ...(8)>     [{_term, results}] ->
+            ...(8)>       IO.puts("Found in ETS")
+            ...(8)>       results
+            ...(8)>   end
+            ...(8)> end
+            #Function<6.128620087/1 in :erl_eval.expr/8>
+          </code></pre>
+          <pre class="fragment"><code data-trim data-noescape>
+            iex(9)> lookup.("a")
+            Not in ETS
+            ["aa", "ab", "ac"]
+          </code></pre>
+          <pre class="fragment"><code data-trim data-noescape>
+            iex(10)> lookup.("b")
+            Found in ETS
+            ["bb", "bc"]
+          </code></pre>
+        </section>
+        <section>
+          <h4>what about our Agent?</h4>
+          <p><span class="fragment">ETL jobs run, so we want to use the latest data set</span></p>
+          <p><span class="fragment">we store trie state in an <code>Agent</code> and modify as needed</span></p>
+        </section>
+        <section>
+          <h4>simplified Agent example</h4>
+          <pre class="fragment"><code data-trim data-noescape>
+            iex(11)> {:ok, agent} = Agent.start_link(fn -> trie end)
+          </code></pre>
+          <pre class="fragment"><code data-trim data-noescape>
+            iex(12)> Agent.get(agent, fn(trie) -> trie end)
+            %Retrieval.Trie{
+              trie: %{
+                97 => %{97 => %{mark: :mark}, 98 => %{mark: :mark}, 99 => %{mark: :mark}},
+                98 => %{98 => %{mark: :mark}, 99 => %{mark: :mark}},
+                99 => %{99 => %{mark: :mark}}
+              }
+            }
+          </code></pre>
+        </section>
+        <section>
+          <h4>adding more words from an updated data set</h4>
+          <pre class="fragment"><code data-trim data-noescape>
+            iex(13)> more_words = ["abc", "abx", "aby", "bbc", "bbx"]
+            ["abc", "abx", "aby", "bbc", "bbx"]
+          </code></pre>
+          <pre class="fragment"><code data-trim data-noescape>
+            iex(14)> Agent.update(agent, fn(trie) ->
+              Retrieval.insert(trie, more_words) end)
+            :ok
+          </code></pre>
+          <pre class="fragment"><code data-trim data-noescape>
+            iex(15)> Agent.get(agent, fn(trie) -> trie end)
+            %Retrieval.Trie{
+              trie: %{
+                97 => %{
+                  97 => %{mark: :mark},
+                  98 => %{
+                    99 => %{mark: :mark},
+                    120 => %{mark: :mark},
+                    121 => %{mark: :mark},
+                    :mark => :mark
+                  },
+                  99 => %{mark: :mark}
+                },
+                98 => %{
+                  98 => %{99 => %{mark: :mark}, 120 => %{mark: :mark}, :mark => :mark},
+                  99 => %{mark: :mark}
+                },
+                99 => %{99 => %{mark: :mark}}
+              }
+            }
+          </code></pre>
+        </section>
+        <section>
+          <h3>state regeneration</h3>
+          <p><span class="fragment">we use a cron-like scheduler, <code>Quantum</code></span></p>
+          <p><span class="fragment">data jobs load in new data, so we want to regenerate our trie</span></p>
+          <p><span class="fragment">we'll also clear our ETS cache (<code>:ets.delete(:trie_cache)</code>)</span></p>
+        </section>
+        <section>
+          <h3>recap on what we did</h3>
+          <p><span class="fragment">fetch terms (we do a bit of pre-processing in our data jobs)</span></p>
+          <p><span class="fragment">create trie from terms</span></p>
+          <p><span class="fragment">store trie state in an Agent</span></p>
+          <p><span class="fragment">return some relevant terms</span></p>
+          <p><span class="fragment">done :)</span></p>
+        </section>
+        <section>
+          <h3>autosuggest quick stats</h3>
+          <p><span class="fragment">the PHP version latency was ~12 milliseconds</span></p>
+          <p><span class="fragment">latency from Elixir autosuggest ~0.350 milliseconds</span></p>
+          <p><span class="fragment">we were happy :)</span></p>
+        </section>
+        <section>
+          <h3>breaking things down</h3>
+          <p>
+          <p><span class="fragment">we took a small piece of a big behemoth</span></p>
+          <p><span class="fragment">made it a service</span></p>
+          <div class="fragment">
+            <img src="images/tpt-elixir_autosuggest.png" />
           </div>
         </section>
 
