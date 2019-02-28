@@ -90,6 +90,7 @@
           <div class="fragment">
             <img src="images/tpt-php_stack.png" />
           </div>
+          <p><span class="fragment">Mostly everything was tied into our CakePHP application.</span></p>
         </section>
         <section>
           <h3>But how do we re-architect our API without affecting our existing flows?</h3>
@@ -383,11 +384,11 @@
         </section>
         <section>
           <h4>What's all that language?</h4>
+          <p><span class="fragment">GraphQL has a lot of fundamental types like Object.</span></p>
           <pre class="fragment"><code data-trim data-noescape>
             use Absinthe.Schema
             use Absinthe.Schema.Notation
           </code></pre>
-          <p><span class="fragment">GraphQL has a lot of fundamental types like Object.</span></p>
           <p><span class="fragment">Abinthe's way of defining a Domain Specific Language (DSL) for these types.</span></p>
           <p><span class="fragment">(uses a bunch of <code>defmacro</code>s)</span></p>
         </section>
@@ -405,6 +406,7 @@
         </section>
         <section>
           <h4>Resolvers</h4>
+          <p><span class="fragment">let's add this field to our schema</span></p>
           <pre class="fragment"><code data-trim data-noescape>
             field :some_table, list_of(:some_object) do
               resolve fn(_args, _info) ->
@@ -421,6 +423,7 @@
               end
             end
           </code></pre>
+          <p><span class="fragment">Ideally, you would just have Resolver functions in a library</span></p>
         </section>
         <section>
           <h4>Recap so far on building out a resolver</h4>
@@ -449,20 +452,30 @@
               }
             }
           </code></pre>
+          <p><span class="fragment">something like this is our bare minimum</span></p>
+          <p><span class="fragment">let's look at some of the main pieces...</span></p>
         </section>
         <section>
           <h4>Input for search: keywords</h4>
           <p>
-            <span class="fragment">Tokenizing our input</span>
+            <span class="fragment">We'll tokenize our input</span>
             <span class="fragment">&nbsp;<code>leex</code></span>
           </p>
         </section>
         <section>
           <h4>search strings</h4>
-          <p><span class="fragment"><code>leex</code> is a bunch of regex definitions</span></p>
+          <p><span class="fragment"><code>leex</code> is a bunch of regex definitions and some Erlang code</span></p>
           <pre class="fragment"><code data-trim data-noescape>
+            %% leex code structure
+
+            Definitions.
+
+            Rules.
+
             %% Skip whitespace is a good example of one
             [\s\t\n\r]+    : skip_token.
+
+            Erlang code.
           </code></pre>
           <p><span class="fragment">it will return the tokens we define</span></p>
           <pre class="fragment"><code data-trim data-noescape>
@@ -481,7 +494,7 @@
           <p><span class="fragment">two words: 'math' and 'fractions'</span></p>
         </section>
         <section>
-          <p><span class="fragment">not that exciting, but special cases are now easier to handle</span></p>
+          <p><span>not that exciting, but special cases are now easier to handle</span></p>
           <p><span class="fragment">take for example a search for quoted string "math fractions"</span></p>
           <pre class="fragment"><code data-trim data-noescape>
             iex(3)> {:ok, tokens} = :lexer.string('"math fractions"')
@@ -534,6 +547,21 @@
           <h3>Back to our search GraphQL endpoint</h3>
           <p><span class="fragment">for simplicity, we now have clean search input</span></p>
           <p><span class="fragment">and we can now facet our search results</span></p>
+        </section>
+        <section>
+          <p><span>this is how we can search...</span></p>
+          <pre class="fragment"><code data-trim data-noescape>
+            search_query
+          </code></pre>
+          <pre class="fragment"><code data-trim data-noescape>
+            # use our lexer and parser
+            |> SearchText.parse()
+          </code></pre>
+          <pre class="fragment"><code data-trim data-noescape>
+            # Pass in our keyword in a format Sphinx Search likes
+            |> SphinxQuery.query()
+          </code></pre>
+          <p><span class="fragment">we now have search results</span></p>
         </section>
         <section>
           <h4>Let's give it a go</h4>
@@ -594,8 +622,8 @@
           <h3>Wrapping it up</h3>
           <p><span class="fragment">Some things we have services for...</span></p>
           <p><span class="fragment">Autosuggest / Related Searches<span></p>
-          <p><span class="fragment">Search recommendations<span></p>
-          <p><span class="fragment">External blogging<span></p>
+          <p><span class="fragment">Product recommendations<span></p>
+          <p><span class="fragment">External blogs<span></p>
           <p><span class="fragment">External financial service<span></p>
         </section>
         <section>
@@ -603,19 +631,25 @@
           <p><span class="fragment">Some things we use GraphQL for data...</span></p>
           <p><span class="fragment">PHP GraphQL client<span></p>
           <p><span class="fragment">A/B Side by Side<span></p>
+          <p><span class="fragment">Search Metrics Tooling<span></p>
         </section>
         <section>
           <h3>There will be more to build...</h3>
+          <p><span class="fragment">we're still working on porting over pieces of the site<span></p>
         </section>
 
         <!-- Conclusion -->
         <section>
-          <h3>This is the end. Thank you!</h3>
-          <p><span class="fragment">{github, linkedin, twitter} / @drincruz</span></p>
+          <h3>This is it for now. Thank you!</h3>
+          <p>
+            <span class="fragment">{github.com, linkedin.com/in, twitter.com} /</span>
+            <span class="fragment">drincruz</span>
+          </p>
           <p><span class="fragment">Slides: http://bit.ly/2SwkKhZ<span></p>
-          <p><span class="fragment">TPT: https://www.teacherspayteachers.com<span></p>
+          <p><span class="fragment">TPT: https://www.teacherspayteachers.com/Careers<span></p>
         </section>
         <!-- This is the end  -->
+
 			</div>
 		</div>
 
